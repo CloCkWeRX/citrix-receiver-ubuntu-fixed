@@ -2280,7 +2280,7 @@ UpdateMachineHWSuffix ()
 {
 	Arch=`uname -m`
 
-	echo $Arch|grep "i[0-9]86" >/dev/null
+	echo $Arch|grep -E "i[0-9]86|x86_64" >/dev/null
 	if [ $? -eq 0 ]; then
 		MachineArch=$IntelSuffix
 		return 0
