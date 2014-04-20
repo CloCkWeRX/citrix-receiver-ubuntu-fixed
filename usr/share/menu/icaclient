@@ -1,0 +1,5 @@
+?package(icaclient):needs="X11" section="Applications/Network/Communication"\
+  title="Citrix Receiver" longtitle="Citrix Receiver for Linux"\
+  hints="remote-control"\
+  icon="/opt/Citrix/ICAClient/icons/manager.png"\
+  command="/opt/Citrix/ICAClient/wfcmgr -icaroot /opt/Citrix/ICAClient"

@@ -1,0 +1,14 @@
+Package: icaclient
+Version: 13.0.0.256735
+Architecture: amd64
+Maintainer: Citrix Systems, Inc. <debian.package.support@citrix.com>
+Installed-Size: 23420
+Pre-Depends: debconf (>= 0.5)
+Depends: libc6-i386 (>= 2.7-1), ia32-libs, lib32z1, lib32asound2, nspluginwrapper
+Section: utils
+Priority: extra
+Homepage: http://www.citrix.com
+Description: Citrix Receiver for Linux
+ Citrix Receiver lets you access your enterprise files, applications, and
+ desktops from your favorite device wherever you are. Just ask your IT
+ department how to get started.

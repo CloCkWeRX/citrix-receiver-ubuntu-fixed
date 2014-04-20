@@ -1,0 +1,44 @@
+###############################################################################
+#
+#   $Id: //icaclient/unix13.0/client/unix/Debian/debian/copyright.template#1 $
+#
+#   Copyright 2011 Citrix Systems, Inc.  All Rights Reserved.
+#
+###############################################################################
+
+It was downloaded from <url://www.citrix.com>
+
+Upstream Author: 
+
+    <Citrix Systems, Inc.>
+
+
+Copyright:
+
+Copyright 1996-2013 Citrix Systems, Inc. All rights reserved.
+Copyright (c) 1986-1997 RSA Security, Inc. All rights reserved.
+This software uses libraries from the FFmpeg project under the LGPLv2.1
+
+Citrix, Independent Computing Architecture (ICA), Program Neighborhood,
+MetaFrame, and MetaFrame XP are registered trademarks and Citrix Receiver,
+Citrix XenApp, XenDesktop, Citrix Presentation Server, Citrix Access Suite,
+and SpeedScreen are trademarks of Citrix Systems, Inc. in the United States
+and other countries.
+
+Microsoft, MS, MS-DOS, Outlook, Windows, Windows NT, and BackOffice are
+either registered trademarks or trademarks of Microsoft Corporation in
+the United States and other countries.
+
+All other Trade Names referred to are the Servicemark, Trademark,
+or Registered Trademark of the respective manufacturers.
+
+
+License:
+
+CITRIX(R) LICENSE AGREEMENT
+
+Use of this component is subject to the Citrix license covering the Citrix 
+product(s) with which you will be using this component. This component is only 
+licensed for use with such Citrix product(s).
+
+CTX_code EP_T_A34320

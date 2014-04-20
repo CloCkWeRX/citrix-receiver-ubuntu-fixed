@@ -1,0 +1,2601 @@
+#!/bin/sh
+
+set_version_info()
+{
+DISP_PRODUCT_NAME="Citrix Receiver for Linux"
+	CurrentIDNAME="$ID_PRODUCT_NAME"
+	CurrentIDVER="$ID_VERSION"
+	CurrentCHANGENO="$CHANGE_NO"
+	CurrentDISPNAME="$DISP_PRODUCT_NAME"
+	CurrentDISPVER="$DISP_VERSION"
+}
+
+# Configure ICAROOT env var.
+ICAROOT=/opt/Citrix/ICAClient
+
+#!/bin/sh
+
+###############################################################################
+#
+#   $Id: //icaclient/unix13.0/client/unix/Debian/postinst.template#2 $
+#
+#   Copyright 2011-2013 Citrix Systems, Inc.  All Rights Reserved.
+#
+###############################################################################
+
+# Setup our generic ECHO_CMD  - same syntax across all platforms
+ECHO_CMD=${ICAROOT}/util/echo_cmd export ECHO_CMD
+
+rm_last_dot(){
+	<&0 sed 's/\/.\$//' >&1
+}
+TopDir=`$ECHO_CMD $ICAROOT | rm_last_dot`
+
+# set ICAInstDir without prompting
+setICAInstDirNoPrompt()
+{
+	ICAInstDir=$TopDir
+	SETDIR_OK=true
+}
+
+# Dummy desktop integration functions.
+
+DT_create_files()
+{
+    true
+}
+
+DT_remove_files()
+{
+    true
+}
+
+DT_integrate()
+{
+    true
+}
+
+DT_disintegrate()
+{
+    true
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		Version.msg
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/en/Version.msg#1 $
+#
+#	Purpose:	Sets shell variables for the version of Client
+#			to be installed.
+#
+#	Copyright 1996-2000, 2006, 2009 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+# note: the INSTALLER_... strings should be in lowercase. The installer will then
+# accept lowercase or uppercase versions of them as input.
+INSTALLER_YES=yes
+INSTALLER_NO=no
+INSTALLER_QUIT=quit
+INSTALLER_Y=y
+INSTALLER_N=n
+INSTALLER_Q=q
+PACKAGE_LANGUAGE=en
+DISP_PRODUCT_NAME="Citrix Receiver for Linux"
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		config.sh
+#
+#	Version:	$Id: //icaclient/unix13.0/client/linux/installer/config.sh#1 $
+#
+#	Purpose:	Sets shell variables for things that may be specific
+#			to the host operating system.  This allows other shell
+#			script parts to be generic.  To adapt the install
+#			script for an additional host, you should consider
+#			ALL of the lines below.  Note that for some items,
+#			and incorrect value might not show up on a simple test,
+#			as the scripts might not follow a path containing
+#			that item.
+#			 
+#
+#	Copyright 1998-2011 Citrix Systems, Inc.  All rights reserved.
+#
+###############################################################################
+
+# Ensure we have some sort of echo command set up. setupwfc should have set
+# it to use our own version that has the same syntax across all platforms.
+if [ -z "$ECHO_CMD" ]
+then
+    ECHO_CMD=echo
+fi
+
+#  Install in here by default.
+DefaultInstallDir=/opt/Citrix/ICAClient
+
+#  Default CDROM mount point
+DefaultCDSourceDir=/cdrom
+
+#  The directory name on the CDROM of the platform package we are installing.
+PORT=linuxx86
+
+#  The command to undo the archive on this platform.
+EXTRACT_ARCHIVE="cpio -imud -H newc --no-preserve-owner"
+
+# The thing that goes between the owner and group to set both by chown.
+CHOWNGRP_TOKEN=":"
+
+# The command to use to test for a symbolic link
+LNKTST="test -L"
+
+# The commands to use to change user/group of symbolic link
+# In Linux, this information is included in the cpio archive
+SYMCHOWN_CMD=
+SYMCHGRP_CMD=
+
+# The command to use to force a reread of inittab
+READ_INITTAB_CMD="/sbin/telinit q"
+
+# Arguments for lmhostid to get correct hostid
+LMHOSTID_ARGS=ether
+
+# The hosts file name
+CAT_CMD=cat
+CAT_HOST_ARG=/etc/hosts
+
+# use less in preference to more as it appears to be less
+# buggy wrt displaying Japanese characters than more.
+if [ "$PAGER_CMD" ]
+then
+    PAGER_CMD=`which $PAGER_CMD`
+    if [ "$PAGER_CMD" -a "$PAGER_PFX" ]
+    then
+	PAGER_CMD="$PAGER_PFX $PAGER_CMD"
+    fi
+fi
+MORE_CMD="${PAGER_CMD:=`which more`}"
+
+# The command to read host information from NIS
+YPCAT_CMD=/usr/bin/ypcat
+YPCAT_HOST_ARG=hosts
+
+# The awk command
+AWK_CMD=awk
+BYTES_PER_BLOCK=512
+BLOCKS_PER_ALLOCATION=2
+#!/bin/sh
+###############################################################################
+#
+#	Name:		instmode.sh
+#
+#	Version:	$Id: //icaclient/unix13.0/client/unix/installer/scripts/instmode.sh#1 $
+#
+#	Purpose:	Provides a method of querying and setting the 
+#                       installation mode.
+#`
+#	Copyright 2002 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+SU_INSTALL=1
+
+###############################################################################
+# get_user_id
+#
+# echoes the current user ID to STDOUT
+###############################################################################
+
+get_user_id()
+{
+    # Return number after first "equals" sign.
+    id | sed "s/[^=]*=\([0-9]*\).*/\1/g" 
+}
+
+###############################################################################
+# set_install_mode
+#
+# This should be called before the SU_INSTALL environment variable is tested.
+# After calling set_install_mode, if SU_INSTALL is a non-zero length, then
+# the super-user installation mode will be used.
+###############################################################################
+set_install_mode()
+{
+    # If superuser, then do multi-user install, otherwise only allow
+    # single-user install
+    uid=`get_user_id`
+
+    if [ $uid != 0 ]
+    then
+	unset SU_INSTALL;
+    fi
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		util_ver.sh
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/util_ver.sh#1 $
+#
+#	Purpose:	Utilities for creting and checking version information
+#			for both CD image and installation.
+#
+#	Copyright 1996-2011 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+###############################################################################
+#
+#  put_version_info() creates version information in the installed package,
+#  for later checking of the version and possibly for upgrading the package.
+#
+#  Takes four parameters:
+#	package information filename (.psf file)
+#	package data file
+#	sub-package type (core/man/cus)
+#	sub-package section (base/local/port)
+#
+#  The two filename parameters are assumed to already be expanded to full
+#  pathnames, with any required name mappings completed.
+#
+###############################################################################
+put_version_info(){
+	pvi_package_info_file=$1
+	pvi_package_data_file=$2
+	pvi_package_type=$3
+	pvi_package_section=$4
+
+	pvi_output_dir="$INST_DIR/pkginf"
+	create_dir "$pvi_output_dir"
+
+	pvi_output_file="${pvi_output_dir}/Ver.${pvi_package_type}.${pvi_package_section}"
+
+	"$ECHO_CMD" "ID_VERSION=$CurrentIDVER"	          >  "$pvi_output_file"
+	"$ECHO_CMD" "DISP_VERSION=$CurrentDISPVER"	  >> "$pvi_output_file"
+	"$ECHO_CMD" "CHANGE_NO=$CurrentCHANGENO"	          >> "$pvi_output_file"
+	"$ECHO_CMD" "ID_PRODUCT_NAME=$CurrentIDNAME"        >> "$pvi_output_file"
+	"$ECHO_CMD" "DISP_PRODUCT_NAME=$CurrentDISPNAME"    >> "$pvi_output_file"
+	"$ECHO_CMD" "uname=`uname -a`"			  >> "$pvi_output_file"
+	"$ECHO_CMD" "PORT=$PORT"			          >> "$pvi_output_file"
+        "$ECHO_CMD" "LANGUAGE=*"                          >> "$pvi_output_file"
+
+	"$ECHO_CMD" "$CurrentCHANGENO"	          > "${pvi_output_dir}/changeno.dat"
+
+	if [ "$HOST_DATE_COMMAND" != "" ]
+	then
+		"$ECHO_CMD" "date=`$HOST_DATE_COMMAND`"	  >> "$pvi_output_file"
+	else
+		"$ECHO_CMD" "date=`date '+%Y:%m:%d:%H:%M:%S %Z' | sed 's/://g'`"	>> "$pvi_output_file"
+	fi
+	"$ECHO_CMD" "INFO_FILE=$pvi_package_info_file"	  >> "$pvi_output_file"
+	"$ECHO_CMD" "DATA_FILE=$pvi_package_data_file"	  >> "$pvi_output_file"
+	
+	pkg_files_rec="${pvi_output_dir}/F.${pvi_package_type}.${pvi_package_section}"
+	touch "$pkg_files_rec"
+	cat "$pvi_package_info_file" 2> /dev/null | (
+		while read line
+		do
+			set $line
+			psf_package_type=$3
+			if [ "$psf_package_type" = "$pvi_package_type" ]
+			then
+				"$ECHO_CMD" "$line" >> "$pkg_files_rec"
+			fi
+		done
+	)
+	chmod 644 "$pvi_output_file" "$pkg_files_rec"
+	if [ -z "$SU_INSTALL" -a -n "$UMASK_STR" ] ;  then
+	        chmod $UMASK_STR "$pvi_output_file" "$pkg_files_rec"
+	fi
+}
+
+###############################################################################
+#
+#  inst_version_ok() sees if an installation is suitable for overwriting
+#  with this installer.  Returns 'true' if it is OK, 'false' otherwise.
+#  Takes one parameter, which is the directory containing the installation.
+#
+###############################################################################
+# The root of the version information file names.
+inst_version_ok(){
+	root_inst_dir=$1
+	ver_file="${root_inst_dir}/pkginf/Ver.core.$PORT"
+	
+	if [ ! -r "$ver_file" ]
+	then
+		# Can't find the file - installed version doesn't match
+		false
+		return
+	fi
+	
+	egrep '^ID_PRODUCT_NAME' "$ver_file" 2>&1 | fgrep '='"$ID_PRODUCT_NAME" > /dev/null 2>&1
+	if [ "$?" = "0" ]
+	then
+                # - we've got a match
+                OLD_DISP_PRODUCT_NAME=`egrep '^DISP_PRODUCT_NAME' "$ver_file" 2>&1 | \
+                                sed -e 's/.*=\(.*\)/\1/'`
+                OLD_DISP_VERSION=`egrep '^DISP_VERSION' "$ver_file" 2>&1 | \
+                                sed -e 's/.*=\([0-9\.]*\)/\1/'`
+                true
+                return
+	fi
+	# file contains another name
+	false
+	return
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		crdir.sh
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/crdir.sh#1 $
+#
+#	Purpose:	Creates a directory and any necessary parents.
+#
+#	Copyright 1996-2011 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+###############################################################################
+#
+#  create_dir() creates a directory and any required parent directories.
+#
+#  This shell function is necessary on HP because of a bug with mkdir -p
+#  that means that you cannot do mkdir -p on an automounted file system
+#  What we have to do is manually create each directory in turn.
+#  It returns 0 in $RETVAL if successful, otherwise 1 in $RETVAL
+#
+###############################################################################
+create_dir(){
+	TARGET_DIR="$1"
+	CURR_DIR=""
+	(
+        	IFS=/
+		# For each directory in the path, starting from the top, if it
+		# doesn't exist, create it.
+		for dir in $TARGET_DIR
+		do
+			CURR_DIR="$CURR_DIR"/"$dir"
+			test -d "$CURR_DIR" || mkdir "$CURR_DIR" 2>/dev/null
+		done
+        )
+
+	# The target directory should now be made. If not return an error
+	# in RETVAL
+	RETVAL=0
+	test -d "$TARGET_DIR" || RETVAL=1
+}
+
+#!/bin/sh
+###############################################################################
+#
+#       Name:           non-interactive.sh
+#
+#       Version:        $Id: $
+#
+#       Purpose:        Sets up a non-interactive working environment.
+#
+#       Copyright 2005 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+user_prompt()
+{
+    true
+}
+
+user_echo()
+{
+    true
+}
+
+getyesno()
+{
+    ANSWER=$INSTALLER_YES
+}
+#!/bin/sh 
+###############################################################################
+#
+# Name:           setup-netscape.sh
+#
+# $Id: //icaclient/unix13.0/client/unix/installer/scripts/setup-netscape.sh#1 $
+#
+#  Purpose:	Installs ICA plugin and wfica as a helper application,
+#		and adds new mime type.
+#
+#  Copyright 1996-2011 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+INST_DIR="$ICAInstDir"
+TMP_NAME=`mktemp /tmp/ICAnetscape.XXXXXX`
+NETSCAPE_DIR="/usr/local/lib/netscape"
+PLUGIN_PATH="/usr/local/netscape/plugins"
+PLUGIN_NAME=npica.so
+MAILCAP_FILE=mailcap
+MIMETYPE_FILE=mime.types
+WFICA_SHELL=wfica.sh
+WFICA_ASSOC=wfica_assoc.sh
+SOLARIS_PACKAGE_NAME=SUNWnsb
+SOLARIS_PACKAGE_DIRECTORY=SUNWns
+COMMON_PLUGIN_DIR=/usr/lib/browser-plugins
+OTHER_BROWSER_DIRS="/usr/lib/mozilla /usr/lib/epiphany/*"
+
+PLUGIN_TXT1="application/x-ica; "
+PLUGIN_TXT2="/${WFICA_SHELL} %s; x-mozilla-flags=plugin:Citrix ICA Client"
+FILE_ASSOC_TEXT="type=application/x-ica exts=ica desc=\"Citrix ICA\""
+
+op_system=`uname -s`
+EXTRA_BROWSERS=
+
+case $op_system in
+OSF1)
+	ALT_INSTALL=1
+	ALT_NETSCAPE_DIR="/usr/lib/netscape"
+	CDE_INTEGRATE=1
+	;;
+IRIX*)
+	ALT_INSTALL=1
+	ALT_NETSCAPE_DIR="/var/netscape/communicator"
+	CDE_INTEGRATE=0
+	;;
+Linux)
+	if test -d "/opt/netscape/communicator"
+	then
+		# Caldera may need this, but we don't need the alternate integrations
+		# of mailcap and mime.types
+		ALT_PLUGIN_PATH="/opt/netscape/communicator"
+	fi
+	ALT_INSTALL=0
+	CDE_INTEGRATE=0
+	;;
+SunOS)
+	# later versions of Solaris (2.8+) have CDE integrated into 
+	# the desktop in a different location from where it normally
+	# lives.
+	if test -d "/usr/dt/appconfig/netscape"
+	then
+		NETSCAPE_DIR="/usr/dt/appconfig/netscape/etc"
+		ALT_PLUGIN_PATH="/usr/dt/appconfig/netscape"
+	fi
+	ALT_INSTALL=0
+	CDE_INTEGRATE=1
+	;;
+AIX|HP-UX|UnixWare|SCO_SYSV|UNIX_SYSV)
+	ALT_INSTALL=0
+	CDE_INTEGRATE=1
+	;;
+*)
+	ALT_INSTALL=0
+	CDE_INTEGRATE=0
+	;;
+esac
+
+###############################################################################
+#
+#	netscape_integrate()
+#
+#	This function is called to add entries to netscape configuration files
+#	to support charlotte. The following is added:
+#
+#	${NETSCAPE_DIR}/${MAILCAP_FILE}:
+#	application/x-ica; ${INST_DIR}/${WFICA_SHELL} %s; x-mozilla-flags=plugin:Citrix ICA Client
+#
+#	${NETSCAPE_DIR}/${MIMETYPE_FILE}:
+#	type=application/x-ica exts=ica desc="Citrix ICA"
+#
+###############################################################################
+
+netscape_integrate()
+{
+  user_echo $integrate_netscape1
+  if test -z "$SU_INSTALL"
+  then
+    set_npui_variables
+    found_netscape 
+  else
+    search_ok=0
+    EXTRA_BROWSERS=`find_browsers`
+  
+    if  test -d "/usr/lib/netscape"\
+	|| test -d "/usr/local/netscape"\
+	|| test -d "/opt/netscape"\
+	|| test -d "/usr/local/lib/netscape"\
+	|| test -d "/usr/dt/appconfig/netscape"\
+	|| test "$MOZILLA_HOME" != "" -a -d "$MOZILLA_HOME"\
+	|| test "$EXTRA_BROWSERS" != ""
+    then
+  	user_echo $integrate_netscape3
+  	found_netscape 
+    else
+	user_prompt "$integrate_netscape2"
+ 	getyesno $INSTALLER_NO
+	if [ "$ANSWER" = "$INSTALLER_YES" ]
+	then
+		found_netscape
+	else
+  		user_echo $integrate_netscape6
+	fi
+    fi
+  fi
+
+  # Create utility script files in install root.
+  create_wfica_script
+  create_wfica_assoc_script
+}
+
+
+################################################################################
+#
+# link_plugin()
+#
+# Create a symbolic link named $PLUGIN_NAME, in the $PLUGIN_PATH directory, 
+# that points to the plugin in the installation directory.
+# 
+################################################################################
+link_plugin()
+{
+    # Ensure the plugin directory exists
+    if [ -d "$PLUGIN_PATH" ]
+    then
+	rm -f "$PLUGIN_PATH/$PLUGIN_NAME"
+    else 
+	create_dir "$PLUGIN_PATH"
+    fi
+    ln -s "$INST_DIR/$PLUGIN_NAME" "$PLUGIN_PATH/$PLUGIN_NAME"
+}
+
+################################################################################
+#
+# link_extra_plugins $PATH
+#
+# Puts a link to the plugin into installations of newer versions of mozilla
+# that may not look at the traditional place for plugins.
+# 
+################################################################################
+link_extra_plugins()
+{
+    for dir in "$@"
+    do
+	if [ -d "$dir" ]
+	then
+            if [ -d "$dir/lib/plugins" ]
+	    then
+	        PLUGIN_PATH=$dir/lib/plugins
+            else
+	        PLUGIN_PATH=$dir/plugins
+            fi
+	    link_plugin
+	fi
+    done
+}
+
+################################################################################
+# unlink_one_plugin $PATH
+#
+# Removes a file only if it is a link to our plug-in.
+# 
+################################################################################
+unlink_one_plugin()
+{
+    [ -h "$1" ] && \
+    ls -l "$1" | grep "> $INST_DIR/$PLUGIN_NAME" > /dev/null && \
+    rm -f "$1"
+}
+
+################################################################################
+#
+# unlink_plugins $PATH
+#
+# Removes any file named $PLUGIN_NAME in the given directory.
+# 
+################################################################################
+unlink_plugins()
+{
+    for dir in "$@"
+    do
+	if [ -d "$dir" ]
+	then
+	    unlink_one_plugin "$dir/lib/plugins/$PLUGIN_NAME"
+	    unlink_one_plugin "$dir/plugins/$PLUGIN_NAME"
+	fi
+    done
+}
+
+################################################################################
+#
+#	found_netscape()
+#
+#	Sub-function, called by netscape_integrate to do its dirty work. Do
+#	not call this function separately.
+#
+################################################################################
+found_netscape()
+{
+  ALREADY_MIMETYPE=0
+  ALREADY_MAILCAP=0
+  arch=`uname -m`
+  if [ "$arch" = "x86_64" -a "$op_system" = "Linux" ]
+  then
+     # On 64 bit platforms one call to nspluginwrapper does all the work of 
+     # linking.
+     if which nspluginwrapper > /dev/null 2>&1
+     then
+        nspluginwrapper -i $INST_DIR/npica.so
+        LINK_PLUGIN=0
+     else
+        LINK_PLUGIN=1
+     fi
+  else
+     LINK_PLUGIN=1
+  fi
+
+  # Ensure the directory exists
+  if [ ! -d "${NETSCAPE_DIR}" ]
+  then
+	create_dir "${NETSCAPE_DIR}"
+  fi
+  # does mailcap exist ?
+  if [ ! -f "${NETSCAPE_DIR}"/${MAILCAP_FILE} ]
+  then
+	"$ECHO_CMD" "# ${NETSCAPE_DIR}/${MAILCAP_FILE}" > "${NETSCAPE_DIR}"/${MAILCAP_FILE}
+  fi
+  # does mime.types exist ?
+  if [ ! -f "${NETSCAPE_DIR}"/${MIMETYPE_FILE} ]
+  then
+	# mime.types must have a distinctive string on the first line...
+	"$ECHO_CMD" "#--Netscape Communications Corporation MIME Information" > "${NETSCAPE_DIR}"/${MIMETYPE_FILE}
+  fi
+  # does mime.types already contain our line?
+  if grep application/x-ica "${NETSCAPE_DIR}"/${MIMETYPE_FILE} >/dev/null
+  then   
+	ALREADY_MIMETYPE=1
+  fi
+  # does mailcap already contain our line?
+  if grep application/x-ica "${NETSCAPE_DIR}"/${MAILCAP_FILE} >/dev/null
+  then
+        ALREADY_MAILCAP=1
+  fi
+  if test $ALREADY_MIMETYPE -eq 1 || test $ALREADY_MAILCAP -eq 1
+  then
+	user_prompt "$integrate_netscape4"
+	getyesno $INSTALLER_YES
+        if [ "$ANSWER" = "$INSTALLER_YES" ]
+	then
+		if test $ALT_INSTALL -eq 1
+		then
+			alt_integrate
+		fi
+		if test "$EXTRA_BROWSERS" != ""
+		then
+		    extra_integrate $EXTRA_BROWSERS
+                    save_extra_browser_list $EXTRA_BROWSERS
+		fi
+		if [ $ALREADY_MAILCAP -eq 1 ]
+		then
+			sed '/x-ica/d' "${NETSCAPE_DIR}"/${MAILCAP_FILE} >${TMP_NAME}
+			mv ${TMP_NAME} "${NETSCAPE_DIR}"/${MAILCAP_FILE}
+		fi
+
+		if [ $ALREADY_MIMETYPE -eq 1 ]
+		then
+			sed '/x-ica/d' "${NETSCAPE_DIR}"/${MIMETYPE_FILE} >${TMP_NAME}
+			mv ${TMP_NAME} "${NETSCAPE_DIR}"/${MIMETYPE_FILE}
+		fi
+
+		"$ECHO_CMD" ${PLUGIN_TXT1}${INST_DIR}${PLUGIN_TXT2} >> "${NETSCAPE_DIR}"/${MAILCAP_FILE}
+		"$ECHO_CMD" $FILE_ASSOC_TEXT >> "${NETSCAPE_DIR}"/${MIMETYPE_FILE}
+
+  		if [ $CDE_INTEGRATE -eq 1 ]
+  		then
+			update_CDE_mime_types "${NETSCAPE_DIR}"/${MAILCAP_FILE} "${NETSCAPE_DIR}"/${MIMETYPE_FILE} 1
+  		fi
+	else
+                LINK_PLUGIN=0
+  		user_echo $integrate_netscape6
+        fi
+  else
+	if test $ALT_INSTALL -eq 1
+	then
+		alt_integrate
+	fi
+	if test "$EXTRA_BROWSERS" != ""
+	then
+	    extra_integrate $EXTRA_BROWSERS
+        save_extra_browser_list $EXTRA_BROWSERS
+	fi
+	"$ECHO_CMD" ${PLUGIN_TXT1}${INST_DIR}${PLUGIN_TXT2} >> "${NETSCAPE_DIR}"/${MAILCAP_FILE}
+	"$ECHO_CMD" $FILE_ASSOC_TEXT >> "${NETSCAPE_DIR}"/${MIMETYPE_FILE}
+
+  	if [ $CDE_INTEGRATE -eq 1 ]
+  	then
+		update_CDE_mime_types "${NETSCAPE_DIR}"/${MAILCAP_FILE} "${NETSCAPE_DIR}"/${MIMETYPE_FILE} 1
+  	fi
+  fi
+
+  if [ $LINK_PLUGIN -eq 1 ]
+  then
+    if [ -z "$SU_INSTALL" ]
+    then
+        if [ -d "$HOME/.netscape" ]
+        then
+            PLUGIN_PATH="$HOME/.netscape/plugins"
+            link_plugin
+        fi
+        # If user has never run firefox this directory will not exist, so create it
+        # assuming the user will want to run firefox later, and will want the plugin
+        # to be integrated. DON'T do this for Netscape, as this browser is hardly ever
+        # used now.
+        if [ ! -d "$HOME/.mozilla" ]
+        then
+            mkdir -p "$HOME/.mozilla/plugins"
+        fi
+        PLUGIN_PATH="$HOME/.mozilla/plugins"
+        link_plugin
+
+    else
+        # Integrate the plugin: use one of the following variables as the path, in order
+        # of preference left to right :
+        # $NPX_PLUGIN_PATH $MOZILLA_HOME/plugins $ALT_PLUGIN_PATH/plugins ${NETSCAPE_DIR}/plugins
+        if test x$NPX_PLUGIN_PATH = x
+        then
+                if test x$MOZILLA_HOME = x
+                then
+			if test x$ALT_PLUGIN_PATH = x
+			then
+                        	PLUGIN_PATH="${NETSCAPE_DIR}"/plugins
+			else
+                        	PLUGIN_PATH=$ALT_PLUGIN_PATH/plugins
+			fi
+                else
+                        PLUGIN_PATH=$MOZILLA_HOME/plugins
+                fi
+        else
+                PLUGIN_PATH=$NPX_PLUGIN_PATH
+        fi
+        
+        link_plugin
+        if test "$EXTRA_BROWSERS" != ""
+	then
+	    link_extra_plugins $EXTRA_BROWSERS
+	fi
+
+	if test -d "$COMMON_PLUGIN_DIR"
+        then
+	    PLUGIN_PATH="$COMMON_PLUGIN_DIR"
+	    link_plugin
+	fi
+    fi
+    user_echo $integrate_netscape5
+  fi
+}
+
+###########################################################################
+#
+#	netscape_disintegrate()
+#
+#	This functions checks if we have updated netscapes configuration.
+#	If so, we offer to undo these changes.
+#
+###########################################################################
+
+netscape_disintegrate()
+{
+  MAILCAP_MODIFIED=0
+  MIMETYPES_MODIFIED=0
+  INST_DIR=$ICAInstDir
+  arch=`uname -m`
+  if [ "$arch" = "x86_64" -a "$op_system" = "Linux" ]
+  then
+     # On 64 bit platforms nspluginwrapper -r does the work
+     if which nspluginwrapper > /dev/null 2>&1
+     then
+        for i in `nspluginwrapper -l | grep npwrapper.npica` 
+        do
+          nspluginwrapper -r $i 2>/dev/null
+        done
+        UNLINK_PLUGIN=0
+     else
+        UNLINK_PLUGIN=1
+     fi
+  else
+     UNLINK_PLUGIN=1
+  fi
+
+  if test -z "$SU_INSTALL"
+  then
+	set_npui_variables
+    EXTRA_BROWSERS=""
+  else
+	EXTRA_BROWSERS=`find_browsers`
+  fi
+
+  # Does file exist?
+  if [ -f "${NETSCAPE_DIR}"/${MIMETYPE_FILE} ]
+  then
+	# Has it been altered?
+	if grep application/x-ica "${NETSCAPE_DIR}"/${MIMETYPE_FILE} >/dev/null
+  	then
+        	MIMETYPES_MODIFIED=1
+	fi
+  fi
+
+  # Does file exist?
+  if [ -f "${NETSCAPE_DIR}"/${MAILCAP_FILE} ]
+  then
+	# Has it been altered?
+	if grep "${ICAInstDir}"/wfica "${NETSCAPE_DIR}"/${MAILCAP_FILE} >/dev/null
+	then
+		MAILCAP_MODIFIED=1
+	fi
+  fi
+
+  if test $MAILCAP_MODIFIED -eq 1
+  then
+        user_prompt "$disintegrate_netscape1"
+        getyesno $INSTALLER_YES
+        if [ "$ANSWER" = "$INSTALLER_YES" ]
+	then
+		if test $ALT_INSTALL -eq 1
+		then
+			alt_disintegrate
+		fi
+		if test "$EXTRA_BROWSERS" != ""
+		then
+		    extra_disintegrate $EXTRA_BROWSERS
+		fi
+		if [ $MAILCAP_MODIFIED -eq 1 ]
+		then
+			sed '/x-ica/d' "${NETSCAPE_DIR}"/${MAILCAP_FILE} >${TMP_NAME}
+			mv ${TMP_NAME} "${NETSCAPE_DIR}"/${MAILCAP_FILE}
+		fi
+
+		if [ $MIMETYPES_MODIFIED -eq 1 ]
+                then
+                        sed '/x-ica/d' "${NETSCAPE_DIR}"/${MIMETYPE_FILE} >${TMP_NAME}
+                        mv ${TMP_NAME} "${NETSCAPE_DIR}"/${MIMETYPE_FILE}
+                fi
+  		if [ $CDE_INTEGRATE -eq 1 ]
+  		then
+			update_CDE_mime_types "${NETSCAPE_DIR}"/${MAILCAP_FILE} "${NETSCAPE_DIR}"/${MIMETYPE_FILE} 0
+  		fi
+        else
+                UNLINK_PLUGIN=0
+	fi
+  else
+        UNLINK_PLUGIN=0
+  fi
+
+  if [ $UNLINK_PLUGIN -eq 1 ]
+  then
+    if [  -z "$SU_INSTALL" ]
+    then
+        unlink_plugins "$HOME/.netscape" "$HOME/.mozilla"
+    else
+	    # Remove any plugin symlinks from all possible locations
+	    if test x$NPX_PLUGIN_PATH != x
+	    then
+        	rm -f $NPX_PLUGIN_PATH/$PLUGIN_NAME
+	    fi
+            unlink_one_plugin "$COMMON_PLUGIN_DIR/$PLUGIN_NAME"
+	    unlink_plugins $MOZILLA_HOME $ALT_PLUGIN_PATH "$NETSCAPE_DIR" $EXTRA_BROWSERS
+	fi
+    user_echo $disintegrate_netscape2
+  fi
+}
+
+################################################################################
+#
+#       alt_integrate()
+#
+#       special cases: IRIX and DEC. We add prefs to an additional location
+#
+################################################################################
+alt_integrate()
+{
+  ALREADY_MIMETYPE2=0
+  ALREADY_MAILCAP2=0
+  # Ensure the directory exists
+  if [ ! -d ${ALT_NETSCAPE_DIR} ]
+  then
+        create_dir ${ALT_NETSCAPE_DIR}
+  fi
+  # does mailcap exist ?
+  if [ ! -f ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} ]
+  then
+        "$ECHO_CMD" "# ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE}" >${ALT_NETSCAPE_DIR}/${MAILCAP_FILE}
+  fi
+  # does mime.types exist ?
+  if [ ! -f ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} ]
+  then
+        # mime.types must have a distinctive string on the first line...
+        "$ECHO_CMD" "#--Netscape Communications Corporation MIME Information" >${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE}
+  fi
+  # does mime.types already contain our line?
+  if grep application/x-ica ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} >/dev/null
+  then
+        ALREADY_MIMETYPE2=1
+  fi
+  # does mailcap already contain our line?
+  if grep application/x-ica ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} >/dev/null
+  then
+        ALREADY_MAILCAP2=1
+  fi
+  if test $ALREADY_MIMETYPE2 -eq 1 || test $ALREADY_MAILCAP2 -eq 1
+  then
+        if [ $ALREADY_MAILCAP2 -eq 1 ]
+        then
+        	sed '/x-ica/d' ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} >${TMP_NAME}
+                mv ${TMP_NAME} ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE}
+        fi
+
+        if [ $ALREADY_MIMETYPE2 -eq 1 ]
+        then
+                sed '/x-ica/d' ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} >${TMP_NAME}
+                mv ${TMP_NAME} ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE}
+        fi
+  fi
+  "$ECHO_CMD" ${PLUGIN_TXT1}${INST_DIR}${PLUGIN_TXT2} >>${ALT_NETSCAPE_DIR}/${MAILCAP_FILE}
+  "$ECHO_CMD" $FILE_ASSOC_TEXT >>${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE}
+}
+
+################################################################################
+#
+#       extra_integrate()
+#
+#       special cases: IRIX and DEC. We add prefs to an additional location
+#
+################################################################################
+extra_integrate()
+{
+    SAVE_ALT_NETSCAPE_DIR=$ALT_NETSCAPE_DIR
+    for dir in "$@"
+    do
+        ALT_NETSCAPE_DIR=$dir
+        alt_integrate
+    done
+    ALT_NETSCAPE_DIR=$SAVE_ALT_NETSCAPE_DIR
+}
+
+###########################################################################
+#
+#       alt_disintegrate()
+#
+#       Special cases: IRIX and DEC. We uninstall from a second location.
+#
+###########################################################################
+
+alt_disintegrate()
+{
+  # Does file exist?
+  if [ -f ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} ]
+  then
+        # Has it been altered?
+        if grep application/x-ica ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} >/dev/null
+        then
+                sed '/x-ica/d' ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE} >${TMP_NAME}
+                mv ${TMP_NAME} ${ALT_NETSCAPE_DIR}/${MIMETYPE_FILE}
+        fi
+  fi
+
+  # Does file exist?
+  if [ -f ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} ]
+  then
+        # Has it been altered?
+        if grep application/x-ica ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} >/dev/null
+        then
+        	sed '/x-ica/d' ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE} >${TMP_NAME}
+                mv ${TMP_NAME} ${ALT_NETSCAPE_DIR}/${MAILCAP_FILE}
+        fi
+  fi
+}
+
+###########################################################################
+#
+#       extra_disintegrate()
+#
+#       Special cases: IRIX and DEC. We uninstall from a second location.
+#
+###########################################################################
+
+extra_disintegrate()
+{
+    SAVE_ALT_NETSCAPE_DIR=$ALT_NETSCAPE_DIR
+    for dir in "$@"
+    do
+        ALT_NETSCAPE_DIR=$dir
+        alt_disintegrate
+    done
+    ALT_NETSCAPE_DIR=$SAVE_ALT_NETSCAPE_DIR
+}
+
+################################################################################
+#
+#	update_CDE_mime_types()
+#
+################################################################################
+update_CDE_mime_types()
+{
+MAILCAP_PATH=$1
+MIMETYPE_PATH=$2
+UPDATE=$3
+
+# process all the apps that we want to integrate
+while read type exts desc
+do
+	application=application/$type
+
+	# only replace the mailcap entry if it's one of ours
+	if grep ${application} ${MAILCAP_PATH} > /dev/null 
+	then
+		if grep "${application}.*wfica" ${MAILCAP_PATH} > /dev/null
+		then
+			# its ours - delete the existing entry
+			sed "/$type/d" ${MAILCAP_PATH} > ${TMP_NAME}
+			mv ${TMP_NAME} ${MAILCAP_PATH}
+			DO_MAILCAP=1
+		else
+			# it's not ours - ignore it
+			DO_MAILCAP=0
+		fi
+	else	
+		# it's not there - add it.
+		DO_MAILCAP=1
+	fi
+
+	# if the mime type is already there then ignore it - don't delete it.
+	if grep ${application} ${MIMETYPE_PATH} > /dev/null
+	then
+		DO_MIMETYPE=0
+	else
+		DO_MIMETYPE=1
+	fi
+
+	# update the mailcap and mime type if required
+	if test $UPDATE -eq 1
+	then
+		# mailcap
+		if test $DO_MAILCAP -eq 1
+		then
+			"$ECHO_CMD" "$application; ${INST_DIR}/${WFICA_ASSOC} %s" >> ${MAILCAP_PATH}
+		fi
+
+		# mime type
+		if test $DO_MIMETYPE -eq 1
+		then
+        		"$ECHO_CMD" "type=$application exts=\"$exts\" desc=\"$desc\"" >> ${MIMETYPE_PATH}
+		fi
+	fi
+ 
+done << EOF
+x-xls   xls             Microsoft Excel
+x-mdb   mdb             Microsoft Access
+x-oft   oft             Microsoft Outlook
+x-ppt   ppt             Microsoft PowerPoint
+x-vsd   vsd             Microsoft Visio
+x-mpp   mpp             Microsoft Project
+x-doc   doc,rtf,wri     Microsoft Word
+x-zip   zip             Winzip Computing WinZip
+EOF
+}
+
+################################################################################
+#
+#	set_npui_variables
+#
+#       Sets the environment variables used in the netscape configuration
+#       routines for a non-privileged user installation.
+#
+################################################################################
+set_npui_variables()
+{
+    MAILCAP_FILE=.mailcap
+    MIMETYPE_FILE=.mime.types
+    NETSCAPE_DIR=${HOME}
+    ALT_INSTALL=0
+    CDE_INTEGRATE=0 
+}
+
+################################################################################
+#
+# create_wfica_assoc_script()
+#
+# Create a script that when called with a filename argument, will attempt to
+# launch a client session, using the argument as a file to be opened by a
+# server application that handles the file-type indicated by the file suffix.
+# 
+################################################################################
+create_wfica_assoc_script()
+{
+    cat > "${INST_DIR}"/${WFICA_ASSOC} << EOF
+#!/bin/sh
+ICAROOT=${INST_DIR} 
+export ICAROOT
+\$ICAROOT/wfica -associate -fileparam \$1
+EOF
+    chmod 755 "${INST_DIR}"/${WFICA_ASSOC}
+    if [ -z "$SU_INSTALL" -a -n "$UMASK_STR" ] ;  then
+	chmod $UMASK_STR "${INST_DIR}"/${WFICA_ASSOC}
+    fi
+}
+
+################################################################################
+#
+# create_wfica_script()
+#
+# Create a script that when called with a filename argument, will attempt to
+# launch a client session, using the argument as an ICA connection file.
+# 
+################################################################################
+create_wfica_script()
+{
+    cat > "${INST_DIR}"/${WFICA_SHELL} << EOF
+#!/bin/sh
+ICAROOT=${INST_DIR} 
+export ICAROOT
+\$ICAROOT/wfica -file \$1
+EOF
+    chmod 755 "${INST_DIR}"/${WFICA_SHELL}
+    if [ -z "$SU_INSTALL" -a -n "$UMASK_STR" ] ;  then
+	chmod $UMASK_STR "${INST_DIR}"/${WFICA_SHELL}
+    fi
+}
+
+###############################################################################
+#
+# IsBrowserDir $DIR
+# 
+# Is this the configuration directory for a Web browser?
+#
+###############################################################################
+IsBrowserDir()
+{
+    [ -d "$1" ] &&
+      [ -x "$1/run-mozilla.sh" -o -d "$1/plugins" -o -d "$1/chrome" ]
+}
+
+###############################################################################
+# find_extra_bin_dirs $PROGRAM
+# 
+# Given a path and name of an executable, recurse down symbolic links
+# looking for an indication as to whether the installation requires its own
+# integration. If so, echo the installation directory required.
+#
+###############################################################################
+find_extra_bin_dirs()
+{    
+    BINFILE="$1"
+    BASENAMES=
+    DONE=0
+    BINDIR=""
+    LINKDEPTH=""
+    MAXDEPTH="........"
+
+    while [ $DONE -eq 0 ]
+    do
+	# Get containing directory and save current file name.
+	DIR=`dirname $BINFILE`
+        BASENAMES="$BASENAMES `basename $BINFILE`"
+
+	# Is the mozilla script in this directory?
+	if IsBrowserDir "$DIR"
+	then
+	    # this is the directory we want.
+	    BINDIR=$DIR
+	    DONE=1
+	else
+	    # Is the file a symbolic link
+	    if [ -h "$BINFILE" ]
+	    then
+		# Look at the file that is pointed to.
+		LINK=`ls -l "$BINFILE" | sed "s/.* -> //g"`
+		echo $LINK | grep "^/" >/dev/null
+		if [ $? -eq 0 ]
+		then
+		    BINFILE="$LINK"
+		else
+		    BINFILE="$DIR/$LINK"
+		fi
+		
+		# Check that this really is a file.
+		# Increment the link depth.
+		LINKDEPTH="${LINKDEPTH}."
+		# Is the depth getting too far?
+		if [ $LINKDEPTH = $MAXDEPTH ]
+		then
+		    # Saveguard against circular references.
+		    DONE=1
+		fi
+	    else
+                # Some mozilla installations have the launch
+                # script in a bin directory, rather than a
+                # symbolic link. Attempt to find the actual
+                # installation directory.
+                BINDIR=`grep "^MOZ_DIST_BIN=" $BINFILE  | sed "s/^MOZ_DIST_BIN=//g" | sed "s/.*\"\(.*\)\".*/\1/g"`
+                if IsBrowserDir "$BINDIR"
+                then
+		    DONE=1
+		else
+                    # Look for parallel "lib" directory
+		    BINDIR=""
+		    DIR="`dirname $DIR`/lib"
+		    if [ -d "$DIR" ]
+		    then
+			if IsBrowserDir "$DIR"
+			then
+			    BINDIR=$DIR
+                        else
+			    # Look in plausible subdirs of lib.
+			    for d in $BASENAMES
+			    do
+	                        TD="$DIR/$d"
+				if [ $DONE -eq 0 ] && IsBrowserDir "$TD"
+				then
+				    DONE=1
+				    BINDIR="$TD"
+				fi
+			    done
+			fi
+		    fi
+		    DONE=1
+                fi
+	    fi
+	fi
+    done
+    echo "$BINDIR"
+}
+
+###############################################################################
+#
+# find_mozilla_browsers
+#
+# Returns a list of directories containing new-style mozilla-based browsers 
+# that may be launched by files on the $PATH.
+#
+###############################################################################
+find_mozilla_browsers()
+{
+
+    PROGS="firefox mozilla iceweasel netscape"
+    DIST_BIN_DIR=""
+    STANDARD_DIRS="/usr/local/netscape /usr/local/mozilla /usr/local/firefox /usr/lib/mozilla"
+    PKGINFO=/usr/bin/pkginfo
+
+    if [ "$BROWSER" ]
+    then
+	PROGS="$PROGS `basename $BROWSER`"
+	DIR=`dirname "$BROWSER"`
+	if [ "$DIR" ]
+	then
+	    STANDARD_DIRS="$STANDARD_DIRS $DIR"
+	fi
+    fi
+	
+
+    case $op_system in
+       SunOS)
+              STANDARD_DIRS="$STANDARD_DIRS /opt/sfw/bin /usr/sfw/bin"
+              if
+                 $PKGINFO -q $SOLARIS_PACKAGE_NAME
+              then
+                 relocation_base=`$PKGINFO -r $SOLARIS_PACKAGE_NAME`
+                 STANDARD_DIRS="$STANDARD_DIRS $relocation_base/$SOLARIS_PACKAGE_DIRECTORY"
+
+                 # N.B. the Netscape 7 packages for SOLARIS 9 have an extended installation path built-in!
+                 case `uname -r` in
+                    5.9) STANDARD_DIRS="$STANDARD_DIRS $relocation_base/dt/appconfig/$SOLARIS_PACKAGE_DIRECTORY"
+                         ;;
+                    *)   ;;
+                 esac
+              fi;;
+       *) ;;
+    esac
+
+    for d in `echo $PATH | sed "s/:/ /g"` $STANDARD_DIRS
+    do
+	echo $d
+    done | sort -u | while read d
+    do 
+	for p in $PROGS
+	do    
+	    # Find the each instance of each named browser
+	    PROG=$d/$p
+	    if test -f $PROG
+	    then
+		# Where is the installation and what version is it?
+		find_extra_bin_dirs $PROG
+	    fi
+	done
+    done
+}
+
+###############################################################################
+#
+# find_browsers
+#
+# Returns on stdout a list of directories containing browser files
+# such as a "plugins" directory.
+#
+###############################################################################
+find_browsers()
+{
+    {
+	for i in $OTHER_BROWSER_DIRS
+	do
+	    IsBrowserDir $i && echo $i
+	done
+	find_mozilla_browsers
+    } | sort -u
+}
+
+BROWSER_LIST_KEY="BROWSER_DIR"
+################################################################################
+#
+# save_extra_browser_list $EXTRA_BROWSERS
+#
+# Saves the list of directories that were used to put extra mimetype, mailcap
+# and possibly plugin settings into.
+#
+################################################################################
+save_extra_browser_list()
+{
+    ver_file="${ICAInstDir}"/pkginf/Ver.core.$PORT
+    for dir in "$@"
+    do
+        if test -f "${ver_file}"
+        then
+            echo "${BROWSER_LIST_KEY}=$dir" >> "${ver_file}"
+        fi
+    done
+}
+###############################################################################
+#
+#       Name:           link_util.sh
+#
+#       $Id:$
+#
+#       Purpose:        Functions for processing links.
+#
+#       Copyright 2011 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+LNKTST0=`echo $LNKTST | sed -e "y/ /:/"`
+
+# Return true if a link points to window the $ICAROOT directory
+SymlinkPointsToICAInst()
+{
+    link="$1"
+
+    (
+        IFS=' '
+        # If this is not actually a symlink then return "false".
+        $LNKTST "$link" || return 1
+
+        # If we cannot read the symlink, then return "true" - we will delete it anyway.
+        if [ ! -r "$link" ]
+        then
+            return 0
+        fi
+
+        deref=`ls -l $link | sed -e "s%^.*-> *%%"`
+
+        echo $deref | grep "$ICAInstDir" > /dev/null 2>&1
+
+        if [ $? -eq 0 ]
+        then
+            return 0
+        else
+            return 1
+        fi
+    )
+}
+#!/bin/sh
+###############################################################################
+#
+#       Name:           setup-GST.sh
+#
+#       $Id: //icaclient/unix13.0/client/unix/installer/scripts/setup-gst.sh#3 $
+#
+#       Purpose:        Handles integration of the client with GStreamer,
+#                       by adding a link to libgstflatstm.so.
+#                       This link goes into the GStreamer library directory
+#                       for privileged installs and into 
+#                       $HOME/.gstreamer-0.10/plugins for user installs.
+#
+#       Copyright 2003-2013 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+GST_FILES=libgstflatstm.so
+
+###############################################################################
+#
+#       Directories to search for the GStreamer installation.
+#       The paths must not have embedded spaces otherwise the
+#       search algorithm doesn't work.
+#
+###############################################################################
+
+DEFAULT_GST_TARGET_DIRS="/usr/lib /usr/local/lib /opt/gnome/lib /usr/lib64"
+X86_GST_TARGET_DIRS="/usr/lib/i386-linux-gnu /usr/lib/x86_64-linux-gnu"
+ARMHF_GST_TARGET_DIRS="/usr/lib/arm-linux-gnueabihf"
+ARMEL_GST_TARGET_DIRS="/usr/lib/arm-linux-gnueabi"
+
+###############################################################################
+#
+#	GST_arch()
+#
+#	This function is called to create links within the installation 
+#       that depend on the OS architecture (32-bit or 64-bit).
+#
+###############################################################################
+
+GST_arch()
+{
+    if [ $1 = "install" ]
+    then
+        if uname -m | grep 64 2>&1 >/dev/null
+        then
+            ext=64
+        else
+            ext=32
+        fi
+        ln -sf "$ICAInstDir/util/libgstflatstm.$ext.so" "$ICAInstDir/util/libgstflatstm.so"
+        ln -sf "$ICAInstDir/util/gst_play.$ext" "$ICAInstDir/util/gst_play"
+        ln -sf "$ICAInstDir/util/gst_read.$ext" "$ICAInstDir/util/gst_read"
+    else
+        rm -f "$ICAInstDir/util/libgstflatstm.so"
+        rm -f "$ICAInstDir/util/gst_play"
+        rm -f "$ICAInstDir/util/gst_read"
+    fi
+}
+
+###############################################################################
+#
+#	GST_integrate()
+#
+#	This function is called to integrate the client with GStreamer.
+#
+###############################################################################
+
+GST_integrate()
+{
+    GST_get_target_dirs
+
+    (
+        # Test the version of Gstreamer installed satisfies the minimum
+        # requirements of 0.10.15
+        "$ICAInstDir/util/gst_play" --gst-version-check >/dev/null 2>&1
+
+        if [ $? -ne 0 ]
+        then
+            return 1
+        fi
+
+        # By setting IFS to be :, we avoid space-separation issues.
+        IFS=:
+
+        INTEGRATE=-1
+
+        for i in $GST_TARGET_DIRS
+        do
+            if [ -d $i ]
+            then
+                INTEGRATE=1
+            fi
+        done
+
+        if [ $INTEGRATE -eq -1 ]
+        then
+            user_echo $integrate_GST1
+            return 2
+        fi
+
+        return 0
+    )
+
+    if [ $? -ne 0 ]
+    then
+        return
+    fi
+
+    if [ -z "$SU_INSTALL" ]
+    then
+        # Non-privileged install. Just put in link for this user.
+        GST_TARGET_DIRS="$HOME/.gstreamer-0.10/plugins"
+    fi
+
+    # Find the right question to ask on whether to proceed.
+
+    (
+        IFS=:
+        PREVIOUS=-1
+        for i in $GST_TARGET_DIRS
+        do
+          for prog in $GST_FILES
+          do
+            link=$i/${prog}
+            if $LNKTST0 $link
+            then
+                PREVIOUS=1
+                break 2
+	    fi
+          done
+        done
+
+        if [ $PREVIOUS -eq -1 ]
+        then
+            user_prompt $integrate_GST2
+        else
+            # If we've already integrated with GST, ask if we want to re-do it.
+
+            user_prompt $integrate_GST3
+        fi
+    )
+
+    getyesno $INSTALLER_YES
+    if [ "$ANSWER" = "$INSTALLER_YES" ]
+    then
+        MODULE_INI="$ICAInstDir/config/module.ini"
+        sed -e 's/MultiMedia=Off/MultiMedia=On/' < "$MODULE_INI" > "${MODULE_INI}.tmp"
+        chmod u+w "$MODULE_INI"
+        cp "${MODULE_INI}.tmp" "$MODULE_INI"
+        chmod u-w "$MODULE_INI"
+        rm -f "${MODULE_INI}.tmp"
+    else
+	return
+    fi
+
+    if [ -z "$SU_INSTALL" ]
+    then
+        # For a user level installation only one directory needs a link.
+        # Make sure the directory exists, if we can.
+        create_dir $GST_TARGET_DIRS
+        if [ ! -d $GST_TARGET_DIRS ]
+        then
+            "$ECHO_CMD" "$integrate_GST4a $GST_TARGET_DIRS $integrate_GST4b"
+            return
+        fi
+    fi
+
+    # Spray links into directories.
+
+    (
+        IFS=:
+        FAILED_LINK_DIRS=
+        for i in $GST_TARGET_DIRS
+        do
+            if [ -d $i -a -w $i ]
+            then
+                FAILED=
+                for prog in $GST_FILES
+                do
+                    link=$i/${prog}
+                    $LNKTST0 $link && rm -f $link
+                    ln -s "$GST_FILE_DIR/${prog}" $link || FAILED=1
+                done
+                if [ -n "$FAILED" ]
+                then
+                    FAILED_LINK_DIRS="$FAILED_LINK_DIRS $i"
+                fi
+            else
+                FAILED_LINK_DIRS="$FAILED_LINK_DIRS $i"
+            fi
+        done
+        if [ -n "$FAILED_LINK_DIRS" ]
+        then
+            "$ECHO_CMD" "$integrate_GST5a $FAILED_LINK_DIRS $integrate_GST5b"
+        fi
+    )
+}
+
+###########################################################################
+#
+#	GST_disintegrate()
+#
+#	This function is called to disintegrate the client with GStreamer.
+#
+###########################################################################
+
+GST_disintegrate()
+{
+    if [ -n "$SU_INSTALL" ]
+    then
+        GST_get_target_dirs
+    else
+        # Non-privileged install. Just remove link for this user.
+        GST_TARGET_DIRS="$HOME/.gstreamer-0.10/plugins"
+    fi
+
+    # Remove dangling symbolic links to removed library files.
+
+    (
+        IFS=:
+        for i in $GST_TARGET_DIRS
+        do
+            for prog in $GST_FILES
+            do
+                link=$i/${prog}
+                SymlinkPointsToICAInst $link && rm -f $link
+            done
+        done
+    )
+
+    if [ -z "$SU_INSTALL" ]
+    then
+        # Non-privileged install. Remove plugin directory if it's empty.
+        rmdir "$GST_TARGET_DIRS" > /dev/null 2>&1 
+    fi
+
+    # The exit code at this point is quite likely to be non-zero (ie
+    # false).  This can cause problems, particularly when uninstalling
+    # the RPM.
+    return 0
+}
+
+###########################################################################
+#
+#       GST_get_target_dirs()
+#
+#       This function is called to work out directories should hold the 
+#       link to the new GStreamer library and put these into the 
+#       GST_TARGET_DIRS environment variable.
+#
+###########################################################################
+GST_get_target_dirs()
+{
+    if [ -z "$GST_TARGET_DIRS" ]
+    then
+        if [ -n "$GST_PLUGIN_PATH"  -o -n "$GST_PLUGIN_SYSTEM_PATH" ]
+        then
+            GST_TARGET_DIRS=`echo "$GST_PLUGIN_PATH $GST_PLUGIN_SYSTEM_PATH" | sed -e "y/ /:/"`
+        else
+            # Look for directories with GStreamer 0.10 library
+            for i in $DEFAULT_GST_TARGET_DIRS
+            do
+                GSTREAMER_LIB=
+                for f in $i/libgstreamer-0.10.so $i/libgstreamer-0.10.so.0
+                do
+                    if [ -f $f ]
+                    then
+                        # We've found a gstreamer library (or link to it)
+                        GSTREAMER_LIB=$f
+                    fi
+                done
+
+                # We need to add the directory to the list. However, on 64-bit
+                # systems we can have both 32 and 64 bit libraries - if possible
+                # we only want the 64-bit directory in that case.
+                if [ \( -n "$GSTREAMER_LIB" \) -a -d $i/gstreamer-0.10 ]
+                then
+                    # Are we on a 32 or 64 bit architecture system?
+                    uname -m | grep 64 > /dev/null 2>&1
+                    arch_64_bit=$? # 0 if 64-bit, 1 if 32-bit
+
+                    # Is the library 32 or 64 bit?
+                    file --help > /dev/null 2>&1 # Check for existence of 'file' command
+                    if [ $? -eq 0 ]
+                    then
+                        file -L $GSTREAMER_LIB | grep -e "64-bit" > /dev/null 2>&1
+                        dir_64_bit=$? # 0 if 64-bit, 1 if 32-bit
+                    else
+                        # If 'file' not present, assume dir matches architecture. This
+                        # assumption is messy because we can end up having links to
+                        # both 32 and 64 bit dirs on 64-bit, though this seems safe.
+                        dir_64_bit=$arch_64_bit
+                    fi
+
+                    # Add the dir to the list if file and system bit-ness match.
+                    if [ $arch_64_bit -eq $dir_64_bit ]
+                    then
+                        list="$list $i/gstreamer-0.10"
+                    fi
+                fi
+            done
+	        case $PORT in
+		        linuxx86)
+                    ADDITIONAL_GST_TARGET_DIRS=$X86_GST_TARGET_DIRS;
+                    ;;
+                linuxarm)
+                    ADDITIONAL_GST_TARGET_DIRS=$ARMEL_GST_TARGET_DIRS;
+                    ;;
+                linuxarmhf)
+                    ADDITIONAL_GST_TARGET_DIRS=$ARMHF_GST_TARGET_DIRS;
+                    ;;
+                solaris|solx86)
+                    ;;
+            esac
+            if [ -n "$ADDITIONAL_GST_TARGET_DIRS" ]; then
+                for i in $ADDITIONAL_GST_TARGET_DIRS
+                do
+                    if [ \( -f $i/libgstreamer-0.10.so -o -f $i/libgstreamer-0.10.so.0 \) -a -d $i/gstreamer-0.10 ]
+                    then
+                        list="$list $i/gstreamer-0.10"
+                    fi
+                done
+            fi
+            GST_TARGET_DIRS=`echo $list | sed -e "y/ /:/"`
+        fi
+    fi
+}
+#!/bin/sh
+###############################################################################
+#
+#	Name:		util_tr.sh
+#
+#
+#	Created:	May 1995
+#
+#	Version:	$Id: //icaclient/unix13.0/client/unix/installer/scripts/util_tr.sh#1 $
+#
+#	Purpose:	Provides functions to translate character strings
+#			to upper and lower case.  This is done using functions
+#			because 'tr' is not portable, and cannot always
+#			be guaranteed to be available.
+#
+#			This file contains versions using 'tr' in its
+#			simplest form.
+#
+#	Copyright 1996-1998 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+###############################################################################
+#
+#  toupper() copies the standard input to the output, translating any lower
+#  case letters to upper case.
+#
+###############################################################################
+toupper(){
+	<&0 tr $lowercase_letters $uppercase_letters >&1
+}
+
+###############################################################################
+#
+#  tolower() copies the standard input to the output, translating any upper
+#  case letters to lower case.
+#
+###############################################################################
+tolower(){
+	<&0 tr $uppercase_letters $lowercase_letters >&1
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		map.sh
+#
+#	Version:	$Id: //icaclient/unix13.0/client/unix/installer/scripts/map.sh#1 $
+#
+#	Purpose:	To map a file name from its original name to whatever
+#			will be present on the CD ROM.  A file name may start
+#			out as something like "install", but when put on a 
+#			CD ROM and mounted, it may be changed to upper case,
+#			may have a dot at the end, and may have a semi colon 1
+#			at the end, so ending up as INSTALL, install., 
+#			install.;1, or INSTALL.;1
+#
+#			To use these functions, you should include this source
+#			in your shell script by concatenating it with your
+#			source at build time, i.e. 
+#				cat map.sh myscript.sh > myscript
+#
+#			To use the functions, you should first call get_tr_key
+#			to set up the mapping keys, and then call tr_file for
+#			each file you want to access.
+#			E.g., 
+#				get_tr_key $0
+#				tr_file $TR_FILE_KEY /dir1/dir2/filename
+#
+#			The file name that is passed to get_tr_key should not
+#			have any extensions in it. It should also have mixed
+#			case.
+#
+#	Copyright 1996-1998, 2008-2009  Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+###############################################################################
+#
+#	get_tr_key <path/file>
+#
+#	Examines the given filename, and generates a key suitable for use in
+#	tr_file().  The key is returned in $TR_FILE_KEY and $TR_DIR_KEY.
+#	TR_FILE_KEY is to be used when mapping a file name, TR_DIR_KEY when
+#	mapping a directory name only. TR_DIR_KEY always has the dot and semi
+#	colon parts set to NN.
+#
+#	The input filename is in 8.3 format, but the given filename must not
+#	have any extension, otherwise we cannot tell whether a dot is needed
+#	at the end in the no-extension case.  There may be a path, but this
+#	is ignored in the generation of the key. 
+#	The given filename must be in mixed case to allow distinction between
+#	upper case, lower case and mixed case filesystems.
+#
+#	The key generated consists of three characters:
+#       Character       File system has
+#       ---------       ---------------
+#       L|U|M           Lower, Upper or Mixed case
+#       D|N             Dot at end of a file with no extension or No dot.
+#       S|N             Semicolon-one at end of filename or No semicolon-one.
+#
+###############################################################################
+
+get_tr_key(){
+	trkey_filename=`basename "$1"`
+	TR_FILE_KEY=""
+	TR_DIR_KEY=""
+
+	# See if it's in upper or lower case.
+	trkey_lower_filename=`echo $trkey_filename | tolower`
+	if [ "$trkey_lower_filename" = "$trkey_filename" ]
+	then
+		# It is lower case
+		TR_FILE_KEY=L
+	else
+		trkey_upper_filename=`echo $trkey_filename | toupper`
+		if [ "$trkey_upper_filename" = "$trkey_filename" ]
+		then
+			# It is upper case
+			TR_FILE_KEY=U
+		else
+			# It must be mixed case.
+			TR_FILE_KEY=M
+		fi
+	fi
+
+	# Only the case mapping is relevant for a directory, so set up the
+	# directory mapping key now using the file case mapping, and NN for
+	# dots and semi colons.
+	TR_DIR_KEY=${TR_FILE_KEY}NN
+
+	# See if it has a dot.
+	echo $trkey_filename | grep '\.' > /dev/null 2>&1
+	if [ "$?" = "0" ]
+	then
+		# Input filename has a dot
+		TR_FILE_KEY=${TR_FILE_KEY}D
+	else
+		# No dot
+		TR_FILE_KEY=${TR_FILE_KEY}N
+	fi
+
+	# See if it has a semi-colon-one
+	echo $trkey_filename | grep ';1' > /dev/null 2>&1
+	if [ "$?" = "0" ]
+	then
+		# Input filename has a semi-colon-one
+		TR_FILE_KEY=${TR_FILE_KEY}S
+	else
+		# No semi-colon-one
+		TR_FILE_KEY=${TR_FILE_KEY}N
+	fi
+}
+
+###############################################################################
+#
+#	tr_file key <path/file>
+#
+#	Translates a filename to correspond to the format indicated.
+#
+#	The first parameter is the format to be used, and is a sequence of
+#	three letters as follows:
+#	U, L or M - Upper case, Lower case or Mixed case
+#	D or N - Dot or No Dot (if there is no ".3" type suffix)
+#	S or N - Semi-colon-One (;1) or Not
+#	
+#	The second parameter is the filename, and may have a leading path,
+#	which will be converted to upper or lower case as necessary.
+#	The filename is assumed to be in 8.3 format.
+#
+#	The translated filename is returned in $TR_FILE
+#
+###############################################################################
+
+tr_file(){
+	# Extract 1st, 2nd and 3rd characters.
+	# sed is more generally available than cut.
+	U_or_L=`echo $1 | sed -e 's/^\(.\).*/\1/'`
+	D_or_N=`echo $1 | sed -e 's/^.\(.\).*/\1/'`
+	S_or_N=`echo $1 | sed -e 's/^..\(.\).*/\1/'`
+
+	TR_FILE=$2
+
+	case $U_or_L in
+	U)
+		# Translate to upper case.
+		TR_FILE=`echo $TR_FILE | toupper`
+		;;
+	M)
+		# Mixed Case - do no translation
+		;;
+	*)
+		# Translate to lower case (default).
+		TR_FILE=`echo $TR_FILE | tolower`
+		;;
+	esac
+
+	case $D_or_N in
+	D)
+		# Add a dot at the end, but only if there isn't already one.
+		( basename $TR_FILE | grep '\.' > /dev/null ) || TR_FILE=${TR_FILE}'.'
+		;;
+	*)
+		# Do not add a dot
+		;;
+	esac
+
+	case $S_or_N in
+	S)
+		# Add a semi-colon-one (;1) at the end.
+		TR_FILE=${TR_FILE}\;1
+		;;
+	*)
+		# Do not add a semi-colon-one
+		;;
+	esac
+}
+
+###############################################################################
+#
+#	setCDidfile CDROOT
+#
+#	Tries to find a product ID file (pkgid) file in the given directory.
+#
+#	As a result of this, TR_FILE_KEY and TR_DIR_KEY will be set to values
+#	suitable for the directory being examined.  This serves two purposes.
+#	Firstly, it allows TR_XXXX_KEY to be set, with no previous information,
+#	and secondly, it provides a translated filename (CDidfile) which contains
+#	package and version information strings.
+#
+###############################################################################
+
+setCDidfile()
+{
+	trialDIR=$1
+	tr_file_key_list="UDS UDN UNS UNN LDS LDN LNS LNN MDS MDN MNS MNN"
+	
+
+	for key in $tr_file_key_list
+	do
+		tr_file $key "PkgId"
+		if [ -r "$trialDIR/$TR_FILE" ]
+		then
+			# Make sure both file and directory keys are set.
+			get_tr_key "$trialDIR/$TR_FILE"
+			CDidfile=$trialDIR/$TR_FILE
+			return
+		fi
+	done
+	CDidfile=""
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		locale.sh
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/locale.sh#1 $
+#
+#	Purpose:	Use the locale to apply the correct message file.
+#
+#	Copyright 2009 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+find_tr_file()
+{
+    if [ -n "$TR_FILE" -a -f "$TR_FILE" ]
+    then
+        if [ -n "$VERBOSE_FIND" ]
+        then
+            echo Found "$TR_FILE"
+        fi
+        true
+        return
+    fi
+    false
+}
+
+###############################################################################
+#
+#       find_locale_file
+#
+#	Finds the file given as a parameter, by searching under the 
+#       directory given as a parameter for the best fit to the LANG variable.
+#       The file found is returned as the value of TR_FILE.
+#
+###############################################################################
+find_locale_file()
+{
+    FIND_TOP_DIR=$1
+    TARGET=$2
+
+    if [ -z "$TR_DIR_KEY" ] 
+    then
+        echo TR_DIR_KEY is empty
+        exit 1
+    fi
+
+    # Find components
+    if [ -n "$VERBOSE_FIND" ]
+    then
+        echo LANG=$LANG
+    fi
+    if [ -z "$LANG" ]
+    then
+        LANG="en"
+        # echo LANG missing, using en
+    fi
+    Lang=`echo $LANG | sed -n -e 's/[_\.].*//' -e 'p'`
+    Territory=`echo $LANG | sed -n -e 's/\(.*\)\..*/\1/' -e 's/.*_\(.*\)/\1/p'`
+    CodeSet=`echo $LANG | sed -n -e 's/.*\.\(.*\)/\1/p'`
+    # echo Lang = $Lang
+    # echo Territory = $Territory
+    # echo CodeSet = $CodeSet
+    if [ "$Lang" = "POSIX" -o "$Lang" = "C" ]
+    then
+        Lang="en"
+        # echo new Lang = $Lang
+    fi
+    if [ "$CodeSet" = "utf8" -o "$CodeSet" = "UTF8" -o "$CodeSet" = "utf-8" ]
+    then
+        CodeSet="UTF-8"
+        # echo new CodeSet = $CodeSet
+    fi
+    if [ -n "$CodeSet" ]
+    then
+        if [ -n "$Territory" ]
+        then
+            # echo Try ${Lang}/$Territory/$CodeSet
+            tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/${Lang}_$Territory.$CodeSet/$TARGET"
+            if find_tr_file
+            then
+                return
+            fi
+        fi
+        # echo Try ${Lang}.$CodeSet
+        tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/${Lang}.$CodeSet/$TARGET"
+        if find_tr_file
+        then
+            return
+        fi
+    fi
+    if [ -n "$Territory" ]
+    then
+        # echo Try ${Lang}_$Territory
+        tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/${Lang}_$Territory/$TARGET"
+        if find_tr_file
+        then
+            return
+        fi
+    fi
+    # echo Try $Lang
+    tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/${Lang}/$TARGET"
+    if find_tr_file
+    then
+        return
+    fi
+    if [ -z "$FIND_TARGET_MAY_BE_ABSENT" ]
+    then
+        echo No target "$TARGET" found under "$FIND_TOP_DIR" for $LANG 
+        if [ ! "$Lang" = "en" ]
+        then
+            echo Trying English...
+        fi
+    fi
+    if [ "$Lang" = "en" ]
+    then
+        false
+        return
+    fi
+    if [ -n "$CodeSet" ]
+    then
+        # echo Try en.$CodeSet
+        tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/en.$CodeSet/$TARGET"
+        if find_tr_file
+        then
+            return
+        fi
+    fi
+    # echo Try en
+    tr_file "$TR_DIR_KEY" "$FIND_TOP_DIR/nls/en/$TARGET"
+    if find_tr_file
+    then
+        return
+    fi
+    if [ -z "$FIND_TARGET_MAY_BE_ABSENT" ]
+    then
+        echo Could not find "$TARGET" under "$FIND_TOP_DIR" for en
+    fi
+    echo
+
+    false
+}
+
+###############################################################################
+#
+#       load_locale_messages
+#
+#	Loads the .msg file given as a parameter, by searching under the 
+#       directory given as a parameter for the best fit to the LANG variable.
+#
+###############################################################################
+load_locale_messages()
+{
+    LOAD_TOP_DIR=$1
+    TARGET=$2
+
+    if find_locale_file "$LOAD_TOP_DIR" "$TARGET"
+    then
+        . "$TR_FILE"
+        true
+        return
+    else
+        false
+        return
+    fi
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name: locale_links.sh
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/locale_links.sh#1 $
+#
+#	Purpose: Install symbolic links based on the installation locale.
+#
+#	Copyright 2008-2013 Citrix Systems, Inc.  All Rights Reserved.
+#
+###############################################################################
+
+# Make symbolic links in the installation tree, based on the current
+# (installation time) locale.
+# Current directory MUST be $INST_DIR.
+
+make_locale_links()
+{
+    tr_file $TR_FILE_KEY eula.txt
+    find_locale_file . $TR_FILE
+    chmod 444 "$TR_FILE"
+    ln -sf $TR_FILE "$INST_DIR/eula.txt"
+
+    # Similarly, links for ini files go into the config directory
+
+    cd config
+    tr_file $TR_FILE_KEY module.ini
+    find_locale_file .. $TR_FILE
+    chmod 444 "$TR_FILE"
+    ln -sf $TR_FILE "$INST_DIR/config/module.ini"
+
+    tr_file $TR_FILE_KEY wfclient.ini
+    find_locale_file .. $TR_FILE
+    chmod 444 "$TR_FILE"
+    ln -sf $TR_FILE "$INST_DIR/config/wfclient.ini"
+
+    tr_file $TR_FILE_KEY appsrv.ini
+    find_locale_file .. $TR_FILE
+    chmod 444 "$TR_FILE"
+    ln -sf $TR_FILE "$INST_DIR/config/appsrv.ini"
+
+    tr_file $TR_FILE_KEY debug.ini
+    FIND_TARGET_MAY_BE_ABSENT=yes
+    if find_locale_file .. $TR_FILE
+    then
+        chmod 444 "$TR_FILE"
+        ln -sf $TR_FILE "$INST_DIR/config/debug.ini"
+    fi
+    FIND_TARGET_MAY_BE_ABSENT=
+
+    # and a link for index.htm goes into the help directory
+
+    cd ../help
+    tr_file $TR_FILE_KEY index.htm
+    find_locale_file .. $TR_FILE
+    chmod 444 "$TR_FILE"
+    ln -sf $TR_FILE "$INST_DIR/help/index.htm"
+
+    cd ..
+
+}
+
+#!/bin/sh
+###############################################################################
+#
+#	Name:		clear_incompatible_flash_cache.sh
+#
+#	$Id: //icaclient/unix13.0/client/unix/installer/scripts/clear_incompatible_flash_cache.sh#2 $
+#
+#	Purpose:	Cleaning up incompatible cache file which need not be used by 12.1 onward flash
+#				binaries.
+#
+#	Copyright 2012-2013 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+RM="rm -rf"
+Installer=""
+IcaDir=.ICAClient
+VersionFile=.flashcacheversion
+FlashCacheDir=CtxFlashCache
+FlashCookieDir=CtxCookieCache
+FlashSharedObjDir=CtxFlashSharedObjects
+AdminDefaultICARoot="/opt/Citrix/ICAClient"
+UserDefaultICARoot=""${HOME}"/ICAClient/linux"
+StrFlashLatestVersion="12.1"
+NumCacheVersionWithoutChange=121
+IntelSuffix="x86"
+ARMSuffix="arm"
+MachineArch=""
+VersionOfClientInstalled=0
+CacheDeletionIsNeeded=0
+InstallationNotFound=0
+
+
+DeleteCacheFilesFromICAHome()
+{
+	IcaHome="$1"
+	if [ "X${IcaHome}" != "X" ]; then
+		if [ ! -f "$IcaHome/$VersionFile" ]; then
+			$RM "$IcaHome/$FlashCacheDir"
+
+			if [ $? -ne 0 ]; then 
+			user_echo "Failed to remove : $IcaHome/$FlashCacheDir"
+			fi
+
+			$RM "$IcaHome/$FlashCookieDir"
+
+			if [ $? -ne 0 ]; then 
+			user_echo "Failed to remove : $IcaHome/$FlashCookieDir"
+			fi
+
+			$RM "$IcaHome/$FlashSharedObjDir"
+
+			if [ $? -ne 0 ]; then 
+			user_echo "Failed to remove : $IcaHome/$FlashSharedObjDir"
+			fi
+
+			# Now we need to maintain the version of client which may be incompatible
+			user_echo "$StrFlashLatestVersion" >  $IcaHome/$VersionFile
+
+			user_echo "HDX Flash history cleanup complete from : `dirname $IcaHome`"
+		fi
+	else
+		user_echo "Paramerter \$IcaHome is not provided"
+	fi
+}
+
+UpdateMachineHWSuffix ()
+{
+	Arch=`uname -m`
+
+	echo $Arch|grep "i[0-9]86" >/dev/null
+	if [ $? -eq 0 ]; then
+		MachineArch=$IntelSuffix
+		return 0
+	fi
+
+	echo $Arch|grep "x86_64" >/dev/null
+	if [ $? -eq 0 ]; then
+		MachineArch=$IntelSuffix
+		return 0
+	fi
+
+	echo $Arch|grep -i "^arm" >/dev/null
+	if [ $? -eq 0 ]; then
+		MachineArch=$ARMSuffix
+		return 0
+	fi
+
+	user_echo "[ERROR] : machine architecture could not be decided."
+	exit 2
+}
+
+CheckIfCacheNeedCleanup ()
+{
+	if [ "X${VersionFileLocation}" != "X" ]; then
+		if [ -f "$VersionFileLocation" ]; then
+			VersionOfClientInstalledStr="`cat "$VersionFileLocation" |grep DISP_VERSION |awk -F= '{print $2}'`"
+			MajorStr="`echo $VersionOfClientInstalledStr |cut -f1 -d.`"
+			MinorStr="`echo $VersionOfClientInstalledStr |cut -f2 -d.`"
+
+			VersionOfClientInstalled=$(( $MajorStr * 10 + $MinorStr ))
+
+			if [ $VersionOfClientInstalled -lt $NumCacheVersionWithoutChange ]; then
+				CacheDeletionIsNeeded=1
+			fi
+			# As of now we do't bother about version
+			CacheDeletionIsNeeded=1
+		fi
+	else
+		user_echo "Versionfile : Ver.core.linux${MachineArch} location is not found."
+		CacheDeletionIsNeeded=1
+	fi
+}
+
+FormTheInstallationPath ()
+{
+	# if ICAROOT is present honor it
+	if [ "X${ICAROOT}" != "X" ]; then
+		if [ -d "${ICAROOT}/pkginf" ]; then
+			VersionFileLocation="${ICAROOT}/pkginf/Ver.core.linux${MachineArch}"
+		fi
+	else
+		if [ $Installer = "root" ]; then
+			if [ -d ${AdminDefaultICARoot} ]; then
+				VersionFileLocation="${AdminDefaultICARoot}/pkginf/Ver.core.linux${MachineArch}"
+			else
+				return 1
+			fi
+		else
+			UserDefaultICARoot="${UserDefaultICARoot}${MachineArch}"
+			if [ -d "${UserDefaultICARoot}" ]; then
+			  VersionFileLocation="${UserDefaultICARoot}/pkginf/Ver.core.linux${MachineArch}"
+			else
+				return 1
+			fi
+		fi
+	fi
+
+}
+
+CompareClientVersionForDeletion ()
+{
+ 	# We need the version of client installed
+	FormTheInstallationPath
+    
+	# If we failed to get the installation directory, cleanup will be generic
+	if [ $? -ne 0 ]; then
+		InstallationNotFound=1
+		return 0
+	fi
+	CheckIfCacheNeedCleanup
+
+}
+
+DeleteFlashCacheFromDir ()
+{
+	UserHome="$1"
+	if [ "X${UserHome}" != "X" ]; then
+		if [ -d "$UserHome/$IcaDir" ]; then
+			IcaHome="$UserHome/$IcaDir"
+			DeleteCacheFilesFromICAHome $IcaHome
+		fi
+	else
+			user_echo "Please provide the user \"$HOME\" as first argument"
+
+	fi
+}
+
+CheckAndDeleteAllCacheFiles ()
+{
+
+	# Admin is doing the installation
+	if [ $Installer  = "root" ]; then 
+		for UserHome in `cat /etc/passwd |awk -F: '{print $6}'`
+			do
+				DeleteFlashCacheFromDir $UserHome
+			done
+	else
+			# This is only for user installation and he should control his own directory
+			DeleteFlashCacheFromDir  "$HOME"
+	fi
+}
+
+
+# main
+Flash_ClearIncompatibleCache ()
+{
+	Installer=`whoami`
+	UpdateMachineHWSuffix
+
+	CompareClientVersionForDeletion
+
+	# if we did not find the installation directory or Version matches for deletion
+	if [ $CacheDeletionIsNeeded -ne 0 -o $InstallationNotFound -eq 1 ]; then
+		CheckAndDeleteAllCacheFiles
+	fi
+}
+#!/bin/sh
+###############################################################################
+#
+#  Name:		integ_ica.sh
+#
+#  $Id: //icaclient/unix13.0/client/unix/installer/scripts/integ_ica.sh#2 $
+#
+#  Purpose:	To integrate the ICA client with browsers and
+#		desktop environments.
+#
+#  Copyright 2012-2013 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+integrate_ICA_client() {
+	# Integrate with netscape
+	netscape_integrate
+
+	# integrate with CDE
+	case $PORT in
+		dec|ibm|hp|sco|solaris|solx86)
+			if [ -n "$SU_INSTALL" ]
+			then
+				CDE_integrate
+			fi
+		;;
+	esac
+
+	# integrate with GNOME/KDE
+	case $PORT in
+		linuxx86|linuxarm|linuxarmhf|solaris|solx86)
+
+			# Always create .desktop files.
+
+			DT_FILE_DIR="${ICAInstDir}"/desktop
+			DT_create_files
+			DT_integrate
+		;;
+	esac
+
+	# integrate with GStreamer 
+	# and make architecture-specific links to 32 or 64 bit versions
+	case $PORT in
+		linuxx86|linuxarm|linuxarmhf)
+			GST_FILE_DIR="${ICAInstDir}"/util
+			if [ "$PORT" = "linuxx86" ]
+			then
+				GST_arch install
+			fi
+			GST_integrate
+			Flash_ClearIncompatibleCache
+	esac
+}
+
+disintegrate_ICA_client() {
+	# disintegrate from netscape
+	netscape_disintegrate
+
+	# disintegrate from CDE
+	case $PORT in
+		dec|ibm|hp|sco|solaris|solx86)
+			if [ -n "$SU_INSTALL" ]
+			then
+				CDE_disintegrate
+			fi
+		;;
+	esac
+
+	# Disintegrate with GNOME/KDE.
+	case $PORT in
+		linuxx86|linuxarm|linuxarmhf|solaris|solx86)
+			DT_FILE_DIR="${ICAInstDir}"/desktop
+			DT_remove_files
+			DT_disintegrate
+		;;
+	esac
+
+	# Disintegrate with GStreamer
+	case $PORT in
+		linuxx86|linuxarm|linuxarmhf)
+			if [ "$PORT" = "linuxx86" ]
+			then
+				GST_arch deinstall
+			fi
+			GST_disintegrate
+	esac
+}
+#!/bin/sh
+###############################################################################
+#
+#       Name:           icalicense.sh
+#
+#       Created:        26 May 2000
+#
+#       Version:        $Id: //icaclient/unix13.0/client/unix/installer/scripts/icalicense.sh#1 $
+#
+#       Purpose:        Create /etc/icalicense/clientlicense for RPM install.
+#
+#       Copyright 2000-2011 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+if test ! -d /etc/icalicense
+then
+    mkdir /etc/icalicense
+fi
+if test ! -f /etc/icalicense/clientlicense
+then
+    "$ICAROOT/util/echo_cmd" -l >/etc/icalicense/clientlicense
+fi
+chmod 444 /etc/icalicense/clientlicense
+chmod 555 /etc/icalicense
+#!/bin/sh
+###############################################################################
+#
+#	Name:		Version.sh
+#
+#	Version:	$Id: //icaclient/unix13.0/client/unix/installer/scripts/Version.sh#1 $
+#
+#	Purpose:	Sets shell variables for the version of Client
+#			to be installed.
+#
+#	Copyright 1996-2001 Citrix Systems, Inc. All rights reserved.
+#
+###############################################################################
+
+
+# Use lots of minor numbers, because a grep for 2.0 would pick up 2.0.1
+ID_VERSION=13.0.0.256735
+# This one is for display of the version number only.
+DISP_VERSION=13.0.0
+CHANGE_NO=256735
+ID_PRODUCT_NAME=CitrixICAClient
+
+
+RunningFrom=INSTALLED
+INSTALLER_YES=yes
+
+set_install_mode
+
+# Ensure that the configuration files are readable by world, but not
+# writeable.
+
+umask 022
+
+setICAInstDirNoPrompt
+
+# Simulate side-effects of calling install_packages() wrt the INST_DIR var
+INST_DIR=$ICAInstDir
+
+set_version_info
+myname=`basename $0 | sed 's/.*\.//'`
+if [ "$myname" = postinst ]
+then
+	# Make pkginf directory
+	put_version_info "Debian_installation" "Debian_package" core $PORT
+
+	# Make locale-dependent symbolic links
+
+	lowercase_letters=abcdefghijklmnopqrstuvwxyz
+	uppercase_letters=ABCDEFGHIJKLMNOPQRSTUVWXYZ
+	get_tr_key $INST_DIR/pkginf/Ver.core.*
+	cd $INST_DIR
+	make_locale_links
+
+	# Perform integrations
+	integrate_ICA_client
+elif [ "$myname" = prerm ]
+then
+	# Remove pkginf directory
+	rm -rf $INST_DIR/pkginf
+
+	# Perform de-integration
+	disintegrate_ICA_client
+
+	# Clean up locale-specific links
+
+	rm -f $INST_DIR/config/module.ini $INST_DIR/eula.txt
+	rm -f $INST_DIR/config/wfclient.ini $INST_DIR/config/appsrv.ini
+	rm -f $INST_DIR/config/debug.ini $INST_DIR/help/index.htm
+	rmdir $INST_DIR/help $INST_DIR/config 2>/dev/null
+
+	rm -f $INST_DIR/wfica.sh
+	rm -f $INST_DIR/wfica_assoc.sh
+fi
+
+# dh_installdeb will replace this with shell code automatically
+# generated by other debhelper scripts.
+
+
+
+exit 0
