@@ -4,7 +4,7 @@ Architecture: amd64
 Maintainer: Citrix Systems, Inc. <debian.package.support@citrix.com>
 Installed-Size: 23420
 Pre-Depends: debconf (>= 0.5)
-Depends: libc6-i386 (>= 2.7-1), lib32z1, nspluginwrapper
+Depends: libc6:i386 (>= 2.7-1), zlib1g:i386, libasound2:i386, nspluginwrapper, libxerces-c3.1:i386
 Section: utils
 Priority: extra
 Homepage: http://www.citrix.com
